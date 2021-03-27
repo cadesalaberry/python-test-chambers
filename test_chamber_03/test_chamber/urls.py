@@ -13,9 +13,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.conf.urls import url
-import test_app.views
+from django.urls import path
+from test_app import views
 
 urlpatterns = [
-    url(r'^assets/?$', test_app.views.get_or_add_assets),
+    path('assets/<str:asset_id>', views.get_asset),
+    path('assets', views.get_or_add_assets),
 ]

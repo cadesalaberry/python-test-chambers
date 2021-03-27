@@ -17,7 +17,7 @@ services:
     volumes:
       - ".:/usr/src/app"
     environment:
-      - DEVELOPMENT=no
+      - DEVELOPMENT=yes
       - ALLOWED_HOSTS=${HOSTNAME}
     labels:
       traefik.backend: "test_chamber"
