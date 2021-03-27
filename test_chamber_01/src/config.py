@@ -12,4 +12,13 @@ class Config:
             self.data = json.load(a_file)
 
     def get_key(self, key_path):
-        return False
+        array_path = key_path.split('.')
+        base = self.data
+
+        for key in array_path:
+            if not isinstance(base, dict) or not key in base:
+                return None
+
+            base = base[key]
+
+        return base
