@@ -1,0 +1,70 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "asset_id": "wgs_montpellier"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    3.8793405890464783,
+                    43.60545245109081
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "asset_id": "bcb"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    3.880721926689148,
+                    43.61530638830013
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "asset_id": "rr"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    3.8763391971588135,
+                    43.60797532152158
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "asset_id": "miaouss"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    3.8745957612991333,
+                    43.61070394217026
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "asset_id": "bm"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    3.877454996109009,
+                    43.60684887974696
+                ]
+            }
+        }
+    ]
+}

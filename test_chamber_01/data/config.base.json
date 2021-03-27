@@ -1,0 +1,40 @@
+{
+    "domain": "me.local",
+    "mail": {
+        "host": "mail.local",
+        "port": 587,
+        "user": "posttmaster@me.local",
+        "password": null
+    },
+    "databases": {
+        "mysql": {
+            "user": "mysql_user",
+            "password": "mysql_password",
+            "name" : "mysql_name",
+            "host": "mysql_host",
+            "port": 4242
+        },
+        "postgresql": {
+            "user": "postgresql_user",
+            "password": "postgresql_password",
+            "name" : "postgresql_name",
+            "host": "postgresql_host",
+            "port": 4242
+        }
+    },
+    "loggers": {
+        "": {
+            "level": "WARNING",
+            "output": "-"
+        },
+        "system": {
+            "level": "DEBUG",
+            "output": "debug.log"
+        }
+    },
+    "" : {
+        "special_key": {
+            "" : "is_special"
+        }
+    }
+}

@@ -1,0 +1,40 @@
+version: '3.5'
+services:
+
+  database:
+    build: ./databases/woosmapdb
+    ports:
+      - "5435:5432"
+    command: postgres -c log_min_duration_statement=0
+    labels:
+      traefik.enable: "false"
+
+  test_chamber:
+    build: .
+    command: ./startup.sh
+    ports:
+      - "8000"
+    volumes:
+      - ".:/usr/src/app"
+    environment:
+      - DEVELOPMENT=no
+      - ALLOWED_HOSTS=${HOSTNAME}
+    labels:
+      traefik.backend: "test_chamber"
+      traefik.frontend.rule: "Host:${HOSTNAME};PathPrefix:/assets;"
+      traefik.enable: "true"
+    depends_on:
+      - database
+
+  traefik:
+    image: traefik:1.7
+    command: traefik --docker --web
+    depends_on:
+      - test_chamber
+    ports:
+      - "81:80"
+      - "8082:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    labels:
+      traefik.enable: "false"
