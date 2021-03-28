@@ -1,6 +1,6 @@
 import json
 import uuid
-from test_app.models import Asset
+from test_app.models import Asset, FeatureSerializer, FeatureCollectionSerializer
 from django.contrib.gis.geos import Point
 
 from django.http import HttpResponse
@@ -9,6 +9,16 @@ from django.http import HttpResponse
 class JsonResponse(HttpResponse):
     def __init__(self, data, *args, **kwargs):
         super().__init__(json.dumps(data), content_type='application/json', *args, **kwargs)
+
+def get_valid_body(request, ProvidedSerializer):
+    body_string = request.body.decode('utf-8')
+
+    try:
+        unsafe_body = json.loads(body_string)
+    except Exception:
+        unsafe_body = {}
+
+    return ProvidedSerializer(data=unsafe_body)
 
 def assetify_json(asset):
     """
@@ -88,8 +98,12 @@ def add_assets(request):
           Validation needs to be done before going to prod.
     """
 
-    body_string = request.body.decode('utf-8')
-    body = json.loads(body_string)
+    validator = get_valid_body(request, FeatureCollectionSerializer)
+
+    if not validator.is_valid():
+        return JsonResponse(data={ 'errors': validator.errors }, status=400)
+
+    body = validator.validated_data
     features = body['features']
 
     created_items = Asset.objects.bulk_create([
@@ -113,11 +127,13 @@ def add_asset(request):
     """
     Add a single asset to the database.
 
-    Note: Assuming correct input from user.
-          Validation needs to be done before going to prod.
-
     deprecated:: 2.3
     """
+
+    validator = get_valid_body(request, FeatureSerializer)
+
+    if not validator.is_valid():
+        return JsonResponse(data={ 'errors': validator.errors }, status=400)
 
     body_string = request.body.decode('utf-8')
     body = json.loads(body_string)
