@@ -10,3 +10,4 @@ print would not log in docker logs
 Point is not JSON serialable
 url() is deprecated in 3.1
 django is now in version 3.1.7, far from the 2.0.5
+why get rid of the POST single element ? I moved it to POST assets/new just in case

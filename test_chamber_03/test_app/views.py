@@ -10,7 +10,23 @@ class JsonResponse(HttpResponse):
     def __init__(self, data, *args, **kwargs):
         super().__init__(json.dumps(data), content_type='application/json', *args, **kwargs)
 
+def assetify_json(asset):
+    """
+    Turns a json asset into a django model.
+    """
+
+    asset_type = asset['type']
+    asset_id = asset['properties']['asset_id']
+    asset_id = str(uuid.uuid4()) # temporarily generate random ids to avoid conflicts
+    geo_type = asset['geometry']['type']
+    geo_coord = Point(tuple(asset['geometry']['coordinates']))
+
+    return Asset(geography=geo_coord, asset_id=asset_id)
+
 def jsonify_asset(asset):
+    """
+    Turns a django model into a readable JSON for the API.
+    """
     return {
         'type': 'Feature',
         # 'type': asset.type,
@@ -27,7 +43,12 @@ def jsonify_asset(asset):
         },
     }
 
+
 def get_assets(request):
+    """
+    Get all assets from the database.
+    """
+
     results = Asset.objects.filter().values()
     assets = [jsonify_asset(item) for item in results]
 
@@ -40,6 +61,12 @@ def get_assets(request):
 
 
 def get_asset(request, asset_id):
+    """
+    Get an asset by asset_id from the database.
+
+    Returns a 404 if not found.
+    """
+
     results = Asset.objects.filter(asset_id=asset_id).values()
 
     if not results:
@@ -53,23 +80,53 @@ def get_asset(request, asset_id):
     return JsonResponse(data=jsonReply, status=200)
 
 
-###
-# Doing no validation yet. Needs to be done before going to prod.
-# Assuming correct input from user.
-###
 def add_assets(request):
-    bodyString = request.body.decode('utf-8')
-    body = json.loads(bodyString)
+    """
+    Add a single asset to the database.
 
-    asset_type = body['type']
-    asset_id = body['properties']['asset_id']
-    asset_id = str(uuid.uuid4())
-    geo_type = body['geometry']['type']
-    geo_coord = Point(tuple(body['geometry']['coordinates']))
+    Note: Assuming correct input from user.
+          Validation needs to be done before going to prod.
+    """
 
-    created = Asset.objects.create(geography=geo_coord, asset_id=asset_id)
+    body_string = request.body.decode('utf-8')
+    body = json.loads(body_string)
+    features = body['features']
 
-    return get_asset(request, asset_id)
+    created_items = Asset.objects.bulk_create([
+        assetify_json(item) for item in features
+    ])
+
+    ids = set([item.asset_id for item in created_items])
+
+    results = Asset.objects.filter(asset_id__in=ids).values()
+    assets = [jsonify_asset(item) for item in results]
+
+    reply = {
+        'type': 'FeatureCollection',
+        'features': assets,
+    }
+
+    return JsonResponse(data=reply, status=200)
+
+
+def add_asset(request):
+    """
+    Add a single asset to the database.
+
+    Note: Assuming correct input from user.
+          Validation needs to be done before going to prod.
+
+    deprecated:: 2.3
+    """
+
+    body_string = request.body.decode('utf-8')
+    body = json.loads(body_string)
+
+    created = assetify_json(body)
+
+    created.save()
+
+    return get_asset(request, created.asset_id)
 
 
 def get_or_add_assets(request):

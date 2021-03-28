@@ -17,6 +17,7 @@ from django.urls import path
 from test_app import views
 
 urlpatterns = [
+    path('assets/new', views.add_asset),
     path('assets/<str:asset_id>', views.get_asset),
     path('assets', views.get_or_add_assets),
 ]
