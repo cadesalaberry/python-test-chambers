@@ -1,7 +1,15 @@
 import json
 import uuid
-from test_app.models import Asset, FeatureSerializer, FeatureCollectionSerializer
+from test_app.models import (
+    Asset,
+    FeatureSerializer,
+    FeatureCollectionSerializer,
+    SearchQuerySerializer,
+    UnknownQuerySerializer,
+)
 from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.measure import D
 
 from django.http import HttpResponse
 
@@ -27,9 +35,9 @@ def assetify_json(asset):
 
     asset_type = asset['type']
     asset_id = asset['properties']['asset_id']
-    asset_id = str(uuid.uuid4()) # temporarily generate random ids to avoid conflicts
+    # asset_id = str(uuid.uuid4()) # temporarily generate random ids to avoid conflicts
     geo_type = asset['geometry']['type']
-    geo_coord = Point(tuple(asset['geometry']['coordinates']))
+    geo_coord = Point(tuple(asset['geometry']['coordinates']), srid=4326)
 
     return Asset(geography=geo_coord, asset_id=asset_id)
 
@@ -37,7 +45,7 @@ def jsonify_asset(asset):
     """
     Turns a django model into a readable JSON for the API.
     """
-    return {
+    json_representation = {
         'type': 'Feature',
         # 'type': asset.type,
         'properties': {
@@ -52,6 +60,11 @@ def jsonify_asset(asset):
             ]
         },
     }
+
+    if 'distance' in asset:
+        json_representation['properties']['distance'] = asset['distance'].m
+
+    return json_representation
 
 
 def get_assets(request):
@@ -135,9 +148,7 @@ def add_asset(request):
     if not validator.is_valid():
         return JsonResponse(data={ 'errors': validator.errors }, status=400)
 
-    body_string = request.body.decode('utf-8')
-    body = json.loads(body_string)
-
+    body = validator.validated_data
     created = assetify_json(body)
 
     created.save()
@@ -145,8 +156,53 @@ def add_asset(request):
     return get_asset(request, created.asset_id)
 
 
+def search_asset(request):
+    """
+    Get the 3 closest assets from the coordinates specified in the query.
+    """
+
+    unsafe_query = {
+        'lat': request.GET.get('lat'),
+        'lng': request.GET.get('lng'),
+    }
+
+    validator = SearchQuerySerializer(data=unsafe_query)
+
+    if not validator.is_valid():
+        return JsonResponse(data={ 'errors': validator.errors }, status=400)
+
+    query = validator.validated_data
+    point = Point((query['lng'], query['lat']), srid=4326)
+
+    results = Asset.objects.annotate(
+        distance=Distance('geography', point)
+    ).filter(
+        # geography__distance_gte=(point, D(m=0))
+    ).order_by(
+        'distance'
+    )[:3].values()
+
+    assets = [jsonify_asset(item) for item in results]
+
+    reply = {
+        'type': 'FeatureCollection',
+        'features': assets,
+    }
+
+    return JsonResponse(data=reply, status=200)
+
+
+
 def get_or_add_assets(request):
     if request.method == 'POST':
-        return add_assets(request)
+        validator = get_valid_body(request, UnknownQuerySerializer)
+
+        if not validator.is_valid():
+            return JsonResponse(data={ 'errors': validator.errors }, status=400)
+        if validator.validated_data['type'] == 'FeatureCollection':
+            return add_assets(request)
+        else:
+            return add_asset(request)
+
     else:
         return get_assets(request)

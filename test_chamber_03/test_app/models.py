@@ -4,8 +4,12 @@ from rest_framework import serializers
 
 
 class Asset(models.Model):
-    geography = PointField(geography=True)
+    geography = PointField(geography=True, srid=4326)
     asset_id = models.CharField(max_length=255, unique=True)
+
+class SearchQuerySerializer(serializers.Serializer):
+    lat = serializers.DecimalField(required=True, max_digits=18, decimal_places=16)
+    lng = serializers.DecimalField(required=True, max_digits=18, decimal_places=16)
 
 class CoordinatesSerializer(serializers.ListField):
     # https://stackoverflow.com/questions/15965166/what-are-the-lengths-of-location-coordinates-latitude-and-longitude
@@ -19,7 +23,6 @@ class PointSerializer(serializers.Serializer):
     type = serializers.ChoiceField(required=True, choices=[('Point', 'Point')])
     coordinates = CoordinatesSerializer()
 
-
 class FeaturePropSerializer(serializers.Serializer):
     asset_id = serializers.SlugField(required=True, min_length=1, max_length=255)
 
@@ -31,3 +34,9 @@ class FeatureSerializer(serializers.Serializer):
 class FeatureCollectionSerializer(serializers.Serializer):
     type = serializers.ChoiceField(required=True, choices=[('FeatureCollection', 'FeatureCollection')])
     features = serializers.ListField(child=FeatureSerializer())
+
+class UnknownQuerySerializer(serializers.Serializer):
+    type = serializers.ChoiceField(required=True, choices=[
+        ('FeatureCollection', 'FeatureCollection'),
+        ('Feature', 'Feature'),
+    ])
