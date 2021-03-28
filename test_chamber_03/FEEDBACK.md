@@ -15,3 +15,4 @@ No constraint was given on the Django version: bumping to 3.1.7 to use djangores
 downgrading to django 2.2 due to `no such function: lwgeom_version`
 This error is not present in docker, continuing with docker
 Mmm just realized the POST should accept bulk and single elements
+Just discovered djangorestframework-gis which might have saved my ass... for next time I guess

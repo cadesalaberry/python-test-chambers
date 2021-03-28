@@ -66,6 +66,15 @@ WSGI_APPLICATION = 'test_chamber.wsgi.application'
 
 DATABASES = {
     'default': {
+        # 'ENGINE': 'django.db.backends.postgres',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.environ.get('PG_DBNAME', 'template_postgis'),
+        'USER': os.environ.get('PG_USER', 'api'),
+        'PASSWORD': os.environ.get('PG_PASSWORD', 'nopass'),
+        'HOST': os.environ.get('PG_HOST', '127.0.0.1'), # default to dockerless settings
+        'PORT': os.environ.get('PG_PORT', '5435'),
+    },
+    'sqlite3': {
         'ENGINE': 'django.contrib.gis.db.backends.spatialite',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }

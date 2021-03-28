@@ -19,6 +19,11 @@ services:
     environment:
       - DEVELOPMENT=yes
       - ALLOWED_HOSTS=${HOSTNAME}
+      - PG_PASSWORD=nopass
+      - PG_USER=api
+      - PG_HOST=database
+      - PG_PORT=5432
+      - PG_DBNAME=template_postgis
     labels:
       traefik.backend: "test_chamber"
       traefik.frontend.rule: "Host:${HOSTNAME};PathPrefix:/assets;"
