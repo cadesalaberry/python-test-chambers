@@ -6,6 +6,7 @@ from rest_framework import serializers
 class Asset(models.Model):
     geography = PointField(geography=True, srid=4326)
     asset_id = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class SearchQuerySerializer(serializers.Serializer):
     lat = serializers.DecimalField(required=True, max_digits=18, decimal_places=16)

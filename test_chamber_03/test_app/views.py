@@ -63,6 +63,8 @@ def jsonify_asset(asset):
 
     if 'distance' in asset:
         json_representation['properties']['distance'] = asset['distance'].m
+    if 'created_at' in asset:
+        json_representation['properties']['created_at'] = asset['created_at'].isoformat()
 
     return json_representation
 
